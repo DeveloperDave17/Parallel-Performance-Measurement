@@ -1,30 +1,51 @@
 package edu.oswego.cs;
 
+import java.util.List;
 import java.util.HashMap;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.StampedLock;
 
 public class LockingCourseMap {
   
   private HashMap<String,Course> courseHashMap = new HashMap<>();
   
-  private final ReentrantLock lock = new ReentrantLock();
-
-  private Condition writeable = lock.newCondition();
-
-  private int readers, writers, waitingReaders, waitingWriters;
+  private final StampedLock sl = new StampedLock();
 
   public void put(String courseId, Course course) throws InterruptedException {
-    lock.lock();
+    Long stamp = sl.writeLock();
     try {
-      ++waitingWriters;
-      while (readers != 0 || writers != 0) {
-        writeable.await();
-      }
-      ++writers;
-
+      courseHashMap.put(courseId, course);
     } finally {
-      lock.unlock();
+      sl.unlockWrite(stamp);
     }
   }
+
+  public Course getCourse(String courseId) {
+    long stamp = sl.tryOptimisticRead();
+    Course course = courseHashMap.get(courseId);
+    if (!sl.validate(stamp)) {
+      stamp = sl.readLock();
+      try {
+        course = courseHashMap.get(courseId);
+      } finally {
+        sl.unlockRead(stamp);
+      }
+    }
+    return course;
+  }
+
+  public List<Course> getAllCourses() {
+    long stamp = sl.tryOptimisticRead();
+    List<Course> courses = courseHashMap.values().stream().toList();
+    if (!sl.validate(stamp)) {
+      stamp = sl.readLock();
+      try {
+        courses = courseHashMap.values().stream().toList();
+      } finally {
+        sl.unlockRead(stamp);
+      }
+    }
+    return courses;
+  }
+
+  
 }
