@@ -34,7 +34,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>edu.oswego.cs</groupId>
-    <artifactId>CourseScheduler</artifactId>
+    <artifactId>BankSystem</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
@@ -112,7 +112,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
                                 <filter>
                                     <!--
                                         Shading signed JARs will fail without this.
-                                        http://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
                                     -->
                                     <artifact>*:*</artifact>
                                     <excludes>
