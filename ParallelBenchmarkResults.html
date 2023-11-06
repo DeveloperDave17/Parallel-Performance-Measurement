@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallel Benchmark Results</title>
+</head>
+<body>
+  <h1>Parallel Benchmark Results</h1>
+  <h2>Background</h2>
+  <p>We were tasked with comparing a custom concurrent data structure of our own devise to a pre-existing concurrent data structure
+    that exists within the Java standard library. My data structure of devise is a stamp locking hashmap (referred to as a Custom Locking Hashmap) which I will be comparing to
+    Java's concurrent hashmap. My benchmarking consists of three different loads of readers/writers across two servers, these servers are namely Rho and Gee.
+  </p>
+  <p>The system being tested is a basic banking system where clients attempt to <b>Read</b> their account while performing some banking action or <b>Write</b> when signing up for a new banking account.
+  The server maintains a hashmap containing these accounts, mapping id to account. The hashmap on the server is either a custom locking hashmap or Java's concurrent hashmap.</p>
+  <p>The three different loads of Readers/Writers that are being tested across two servers are High Reader Count, Medium Reader Count, and Low Reader Count. The High Reader Count load consists of 95% Reader threads and 5% Writer threads.
+    The Medium Reader Count load consists of 75% Reader threads and 25% Writer threads. The Low Reader Count consists of 50% Reader threads and 50% Writer threads.
+  </p>
+  <p>The two servers Rho and Gee have different core counts. In order to minimize context switching a thread count that matched the core count was assigned to each machine for testing. The average throughput was calculated by combining five levels of iteration
+    across two forks with a three iteration warmup per fork for each load. On the graphs below throughput is measured in number of operations per microsecond.
+  </p>
+  <h2>Rho Benchmark Results</h2>
+  <p>The server, Rho, here at Oswego has 88 cores. Of these 88 cores all of them were utilized during tests.</p>
+  <img src="./Rho Results.png" alt="A graph of Rho's results">
+  <p>When looking at the graph we can see that throughput seems to be fairly consistent across different loads with the Concurrent Hashmap.
+    The throughput for the Custom Locking Hashmap also seems to be fairly consistent with a small but noticeable spike during the 75% Reader and 25% Writer work load.
+    Now, when comparing the results of the Concurrent Hashmap and Custom Locking Hashmap it becomes very clear that the Throughput of the Concurrent Hashmap is far greater than that of its opponent (The Custom Locking Hashmap).
+    The cause of this vast difference revolves around the amount of contention the Custom Locking Hashmap is facing. Stamp lock writes tend to invalidate optimistic reads and cause the hashmap to wait for a read lock before retrieving an account.</p>
+  <h2>Gee Benchmark Results</h2>
+  <p>The server, Gee, here at Oswego has 128 cores. Of these 128 cores all of them were utilized during tests.</p>
+  <img src="./Gee Results.png" alt="A graph of Gee's results">
+  <p>When looking at the graph we can see that throughput seems to have a negative correlation to the amount of writers with the Concurrent Hashmap which differs from our Rho results. A possible cause for this may be the increased thread count resulting in more contention.
+    The throughput for the Custom Locking Hashmap also seems to be fairly consistent with a small but noticeable spike during the 75% Reader and 25% Writer work load just like with Rho's results.
+    Now, when comparing the results of the Concurrent Hashmap and Custom Locking Hashmap it becomes very clear that the Throughput of the Concurrent Hashmap is far greater than that of the Custom Locking Hashmap.
+    The cause of this vast difference revolves around the amount of contention the Custom Locking Hashmap is facing. Stamp lock writes tend to invalidate optimistic reads and cause the hashmap to wait for a read lock before retrieving an account.</p>
+  <h2>Conclusion</h2>
+  <p>These results give good reason to reach for concurrent data structures that are already provided to us. These data structures tend to have many small optimizations that are tedious to implement but when these optimizations a clear different is seen. </p>
+</body>
+</html>
